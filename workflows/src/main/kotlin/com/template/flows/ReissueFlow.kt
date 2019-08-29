@@ -20,33 +20,29 @@ import net.corda.core.utilities.ProgressTracker
 @InitiatingFlow
 @StartableByRPC
 class ReissueFlow(val linearId: UniqueIdentifier) : FlowLogic<SignedTransaction>() {
-    override val progressTracker = ProgressTracker()
-
     @Suspendable
     override fun call(): SignedTransaction {
         val origin = serviceHub.myInfo.legalIdentities.first()
         val notary = serviceHub.networkMapCache.notaryIdentities.single()
 
         // GET HEAD OF CHAIN
-        val lastStateAndRef = serviceHub.vaultService.queryBy<SimpleState>(QueryCriteria.LinearStateQueryCriteria(linearId = listOf(linearId))).states.single()
+        val stateAndRef = serviceHub.vaultService.queryBy<SimpleState>(QueryCriteria.LinearStateQueryCriteria(linearId = listOf(linearId))).states.single()
 
         // REMOVE FROM LEDGER
-        val commandRemove = Command(SimpleContract.Commands.Remove(), listOf(origin.owningKey))
-        val txBuilder1 = TransactionBuilder(notary)
-                .addInputState(lastStateAndRef)
-                .addCommand(commandRemove)
-        txBuilder1.verify(serviceHub)
-        val stx1 = serviceHub.signInitialTransaction(txBuilder1)
-        subFlow(FinalityFlow(stx1, emptyList()))
+        val txBuilderRemove = TransactionBuilder(notary)
+                .addInputState(stateAndRef)
+                .addCommand(Command(SimpleContract.Commands.Remove(), listOf(origin.owningKey)))
+        txBuilderRemove.verify(serviceHub)
+        val txRemove = serviceHub.signInitialTransaction(txBuilderRemove)
+        subFlow(FinalityFlow(txRemove, emptyList()))
 
         // REISSUE ONTO LEDGER
-        val commandStart = Command(SimpleContract.Commands.Start(), listOf(origin.owningKey))
-        val txBuilder2 = TransactionBuilder(notary)
-                .addOutputState(lastStateAndRef.state.data)
-                .addCommand(commandStart)
-        txBuilder2.verify(serviceHub)
-        val stx2 = serviceHub.signInitialTransaction(txBuilder2)
-        return subFlow(FinalityFlow(stx2, emptyList()))
+        val txBuilderStart = TransactionBuilder(notary)
+                .addOutputState(stateAndRef.state.data)
+                .addCommand(Command(SimpleContract.Commands.Start(), listOf(origin.owningKey)))
+        txBuilderStart.verify(serviceHub)
+        val txStart = serviceHub.signInitialTransaction(txBuilderStart)
+        return subFlow(FinalityFlow(txStart, emptyList()))
     }
 }
 

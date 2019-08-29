@@ -11,7 +11,6 @@ import net.corda.core.identity.AbstractParty
 // *********
 @BelongsToContract(SimpleContract::class)
 data class SimpleState(val index: Int, override val participants: List<AbstractParty>, override val linearId: UniqueIdentifier = UniqueIdentifier()) : LinearState
-
 fun newState(state: SimpleState): SimpleState {
     return state.copy(index = state.index+1)
 }

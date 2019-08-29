@@ -23,20 +23,18 @@ import javax.annotation.Signed
 @InitiatingFlow
 @StartableByRPC
 class AddParticipantFlow(val linearId: UniqueIdentifier, val newParty: Party) : FlowLogic<SignedTransaction>() {
-    override val progressTracker = ProgressTracker()
-
     @Suspendable
     override fun call(): SignedTransaction {
         val origin = serviceHub.myInfo.legalIdentities.first()
         val notary = serviceHub.networkMapCache.notaryIdentities.single()
 
-        val lastStateAndRef = serviceHub.vaultService.queryBy<SimpleState>(QueryCriteria.LinearStateQueryCriteria(linearId = listOf(linearId))).states.single()
+        val stateAndRef = serviceHub.vaultService.queryBy<SimpleState>(QueryCriteria.LinearStateQueryCriteria(linearId = listOf(linearId))).states.single()
         val command = Command(SimpleContract.Commands.Add(), listOf(origin.owningKey, newParty.owningKey))
 
-        val nextState = newState(lastStateAndRef.state.data).copy(participants = listOf(origin, newParty))
+        val nextState = newState(stateAndRef.state.data).copy(participants = listOf(origin, newParty))
 
         val txBuilder = TransactionBuilder(notary)
-                .addInputState(lastStateAndRef)
+                .addInputState(stateAndRef)
                 .addOutputState(nextState)
                 .addCommand(command)
         txBuilder.verify(serviceHub)
@@ -49,7 +47,7 @@ class AddParticipantFlow(val linearId: UniqueIdentifier, val newParty: Party) : 
 }
 
 @InitiatedBy(AddParticipantFlow::class)
-class TestBackchainFlowResponder(val counterpartySession: FlowSession) : FlowLogic<SignedTransaction>() {
+class AddParticipantFlowResponder(val counterpartySession: FlowSession) : FlowLogic<SignedTransaction>() {
     @Suspendable
     override fun call(): SignedTransaction {
         val signedTransactionFlow = object : SignTransactionFlow(counterpartySession) {

@@ -32,7 +32,6 @@ class SimpleContract : Contract {
                 "There should be no output state." using (tx.outputStates.isEmpty())
             }
         }
-
     }
 
     interface Commands : CommandData {

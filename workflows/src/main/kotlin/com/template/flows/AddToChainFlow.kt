@@ -20,8 +20,6 @@ import net.corda.core.utilities.ProgressTracker
 @InitiatingFlow
 @StartableByRPC
 class AddToChainFlow(val linearId: UniqueIdentifier) : FlowLogic<SignedTransaction>() {
-    override val progressTracker = ProgressTracker()
-
     @Suspendable
     override fun call(): SignedTransaction {
         val origin = serviceHub.myInfo.legalIdentities.first()
