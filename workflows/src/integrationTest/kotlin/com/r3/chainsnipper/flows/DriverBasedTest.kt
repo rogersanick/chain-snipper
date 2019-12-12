@@ -1,4 +1,4 @@
-package com.test
+package com.r3.chainsnipper.flows
 
 import net.corda.core.identity.CordaX500Name
 import net.corda.core.utilities.getOrThrow

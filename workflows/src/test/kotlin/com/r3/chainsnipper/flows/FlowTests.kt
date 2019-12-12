@@ -1,4 +1,4 @@
-package com.template
+package com.r3.chainsnipper.flows
 
 import net.corda.testing.node.MockNetwork
 import net.corda.testing.node.MockNetworkParameters

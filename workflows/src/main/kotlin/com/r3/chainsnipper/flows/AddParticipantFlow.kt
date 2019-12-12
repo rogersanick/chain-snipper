@@ -1,9 +1,9 @@
-package com.template.flows
+package com.r3.chainsnipper.flows
 
 import co.paralleluniverse.fibers.Suspendable
-import com.template.contracts.SimpleContract
-import com.template.states.SimpleState
-import com.template.states.newState
+import com.r3.chainsnipper.contracts.SimpleContract
+import com.r3.chainsnipper.states.SimpleState
+import com.r3.chainsnipper.states.newState
 import net.corda.core.contracts.Command
 import net.corda.core.contracts.StateAndContract
 import net.corda.core.contracts.UniqueIdentifier

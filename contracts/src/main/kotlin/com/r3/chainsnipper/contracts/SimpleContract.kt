@@ -1,4 +1,4 @@
-package com.template.contracts
+package com.r3.chainsnipper.contracts
 
 import net.corda.core.contracts.CommandData
 import net.corda.core.contracts.Contract

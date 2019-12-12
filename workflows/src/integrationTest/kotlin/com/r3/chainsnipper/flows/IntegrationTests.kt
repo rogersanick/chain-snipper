@@ -1,27 +1,23 @@
-package com.test
+package com.r3.chainsnipper.flows
 
-import com.template.flows.*
-import com.template.states.SimpleState
-import net.corda.core.contracts.TransactionVerificationException
+import com.r3.chainsnipper.flows.*
+import com.r3.chainsnipper.states.SimpleState
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.identity.Party
-import net.corda.core.node.services.queryBy
-import net.corda.core.node.services.vault.QueryCriteria
 import net.corda.core.utilities.getOrThrow
 import net.corda.testing.internal.chooseIdentity
 import net.corda.testing.node.*
 import org.junit.After
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Test
 import kotlin.system.measureTimeMillis
 
 class IntegrationTests {
 
     private val mockNetwork = MockNetwork(MockNetworkParameters(cordappsForAllNodes = listOf(
-            TestCordapp.findCordapp("com.template.states"),
-            TestCordapp.findCordapp("com.template.contracts"),
-            TestCordapp.findCordapp("com.template.flows"))))
+            TestCordapp.findCordapp("com.r3.chainsnipper.states"),
+            TestCordapp.findCordapp("com.r3.chainsnipper.contracts"),
+            TestCordapp.findCordapp("com.r3.chainsnipper.flows"))))
     private lateinit var nodeA: StartedMockNode
     private lateinit var nodeB: StartedMockNode
     private lateinit var partyA: Party
@@ -52,6 +48,7 @@ class IntegrationTests {
             val addToChainFuture = nodeA.startFlow(AddToChainFlow(linearId))
             mockNetwork.runNetwork()
             addToChainFuture.getOrThrow()
+            println("Chain length is currently $i")
         }
         return linearId
     }
@@ -65,6 +62,7 @@ class IntegrationTests {
             val addToChainFuture = nodeA.startFlow(AddToChainFlow(linearId))
             mockNetwork.runNetwork()
             addToChainFuture.getOrThrow()
+            println("Chain length is currently $i")
 
             // Snip chain every 10 transactions
             if (i % 10 == 0) {

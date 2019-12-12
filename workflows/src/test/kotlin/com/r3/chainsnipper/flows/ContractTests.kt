@@ -1,4 +1,4 @@
-package com.template.contracts
+package com.r3.chainsnipper.flows
 
 import net.corda.testing.node.MockServices
 import org.junit.Test
