@@ -2,10 +2,9 @@ package com.r3.chainsnipper.states
 
 import com.r3.chainsnipper.contracts.SimpleContract
 import net.corda.core.contracts.BelongsToContract
-import net.corda.core.contracts.FungibleState
 import net.corda.core.contracts.LinearState
 import net.corda.core.contracts.UniqueIdentifier
-import net.corda.core.identity.AbstractParty
+import net.corda.core.identity.Party
 
 // *********
 // * State *
@@ -13,7 +12,7 @@ import net.corda.core.identity.AbstractParty
 @BelongsToContract(SimpleContract::class)
 data class SimpleState(
         val index: Int,
-        override val participants: List<AbstractParty>,
+        override val participants: List<Party>,
         override val linearId: UniqueIdentifier = UniqueIdentifier()
 ) : LinearState
 

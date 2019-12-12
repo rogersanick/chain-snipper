@@ -25,9 +25,10 @@ class AddToChainFlow(val linearId: UniqueIdentifier) : FlowLogic<SignedTransacti
         val origin = serviceHub.myInfo.legalIdentities.first()
         val notary = serviceHub.networkMapCache.notaryIdentities.single()
 
-        val lastStateAndRef = serviceHub.vaultService.queryBy<SimpleState>(
+        val lastStateAndRefs = serviceHub.vaultService.queryBy<SimpleState>(
                 QueryCriteria.LinearStateQueryCriteria(linearId = listOf(linearId))
-        ).states.single()
+        ).states
+        val lastStateAndRef = lastStateAndRefs.single()
 
         val command = Command(SimpleContract.Commands.Add(), listOf(origin.owningKey))
 
