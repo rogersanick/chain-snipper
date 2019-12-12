@@ -1,6 +1,5 @@
 package com.r3.chainsnipper.flows
 
-import com.r3.chainsnipper.flows.*
 import com.r3.chainsnipper.states.SimpleState
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.identity.Party
@@ -39,13 +38,27 @@ class IntegrationTests {
     @After
     fun tearDown() = mockNetwork.stopNodes()
 
-    fun setupChainWithoutSnipping(): UniqueIdentifier {
-        val startChainFuture = nodeA.startFlow(StartChainFlow())
+    @Test
+    fun testSingleParticipantNoChainSnipping() {
+        val linearId = nodeA.setupChainWithoutSnipping()
+        val time = nodeA.timeToTransactionResolution(linearId, partyB)
+        println("Transaction resolution for a TX Chain Length of $CHAIN_LENGTH, took: $time")
+    }
+
+    @Test
+    fun testSingeParticipantWithChainSnippingTest() {
+        val linearId = nodeA.setupChainWithSnipping()
+        val time = nodeA.timeToTransactionResolution(linearId, partyB)
+        println("Transaction resolution for a TX Chain Length of $CHAIN_LENGTH, took: $time")
+    }
+
+    fun StartedMockNode.setupChainWithoutSnipping(): UniqueIdentifier {
+        val startChainFuture = this.startFlow(StartChainFlow())
         mockNetwork.runNetwork()
         val stx = startChainFuture.getOrThrow()
         val linearId = stx.tx.outputsOfType<SimpleState>().single().linearId
         for (i in 1..CHAIN_LENGTH) {
-            val addToChainFuture = nodeA.startFlow(AddToChainFlow(linearId))
+            val addToChainFuture = this.startFlow(AddToChainFlow(linearId))
             mockNetwork.runNetwork()
             addToChainFuture.getOrThrow()
             println("Chain length is currently $i")
@@ -53,20 +66,20 @@ class IntegrationTests {
         return linearId
     }
 
-    fun setupChainWithSnipping(): UniqueIdentifier {
-        val startChainFuture = nodeA.startFlow(StartChainFlow())
+    fun StartedMockNode.setupChainWithSnipping(): UniqueIdentifier {
+        val startChainFuture = this.startFlow(StartChainFlow())
         mockNetwork.runNetwork()
         val stx = startChainFuture.getOrThrow()
         val linearId = stx.tx.outputsOfType<SimpleState>().single().linearId
         for (i in 1..CHAIN_LENGTH) {
-            val addToChainFuture = nodeA.startFlow(AddToChainFlow(linearId))
+            val addToChainFuture = this.startFlow(AddToChainFlow(linearId))
             mockNetwork.runNetwork()
             addToChainFuture.getOrThrow()
             println("Chain length is currently $i")
 
             // Snip chain every 10 transactions
             if (i % 10 == 0) {
-                val reissueFuture = nodeA.startFlow(ReissueFlow(linearId))
+                val reissueFuture = this.startFlow(ReissueFlow(linearId))
                 mockNetwork.runNetwork()
                 reissueFuture.getOrThrow()
             }
@@ -74,28 +87,17 @@ class IntegrationTests {
         return linearId
     }
 
-    fun timeTransactionResolution(linearId: UniqueIdentifier): Long {
+    fun StartedMockNode.timeToTransactionResolution(linearIdOfStateHead: UniqueIdentifier, targetNode: Party): Long {
         return measureTimeMillis {
-            val addParticipantFuture = nodeA.startFlow(AddParticipantFlow(linearId, partyB))
-            mockNetwork.runNetwork()
-            addParticipantFuture.getOrThrow()
+            this.addPartyToResolveBackchain(linearIdOfStateHead, targetNode)
         }
     }
 
-    @Test
-    fun NoSnippingTest() {
-        val linearId = setupChainWithoutSnipping()
-        val time = timeTransactionResolution(linearId)
-        println(time)
+    fun StartedMockNode.addPartyToResolveBackchain(linearIdOfStateHead: UniqueIdentifier, targetNode: Party) {
+        val addParticipantFuture = nodeA.startFlow(AddParticipantFlow(linearIdOfStateHead, targetNode))
+        mockNetwork.runNetwork()
+        addParticipantFuture.getOrThrow()
     }
-
-    @Test
-    fun SnippingTest() {
-        val linearId = setupChainWithSnipping()
-        val time = timeTransactionResolution(linearId)
-        println(time)
-    }
-
 
 
 }
